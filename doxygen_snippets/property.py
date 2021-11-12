@@ -14,7 +14,7 @@ class Property:
 
 		def md(self, plain: bool = False) -> str:
 			detaileddescription = self.xml.find('detaileddescription')
-			if len(list(detaileddescription)) > 0:
+			if list(detaileddescription):
 				return self.parser.paras_as_str(detaileddescription, plain=plain)
 			else:
 				return ''
@@ -39,9 +39,10 @@ class Property:
 
 			paras = briefdescription.findall('para')
 			if len(paras) > 0:
-				text = []
-				for para in paras:
-					text.append(self.parser.paras_as_str(para, italic=True, plain=plain))
+				text = [
+				    self.parser.paras_as_str(para, italic=True, plain=plain)
+				    for para in paras
+				]
 				return ' '.join(text)
 			else:
 				return ''
@@ -68,18 +69,13 @@ class Property:
 		def array(self, plain: bool = False) -> [str]:
 			ret = []
 			for includes in self.xml.findall('includes'):
-				if plain:
-					incl = includes.text
-				else:
-					incl = self.parser.reference_as_str(includes)
-
+				incl = includes.text if plain else self.parser.reference_as_str(includes)
 				if includes.get('local') == 'yes':
 					ret.append('"' + incl + '"')
+				elif plain:
+					ret.append('<' + incl + '>')
 				else:
-					if plain:
-						ret.append('<' + incl + '>')
-					else:
-						ret.append('&lt;' + incl + '&gt;')
+					ret.append('&lt;' + incl + '&gt;')
 			return ret
 
 		def has(self) -> bool:

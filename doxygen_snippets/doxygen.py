@@ -36,7 +36,7 @@ class Doxygen:
 							options=self.options)
 				node._visibility = Visibility.PUBLIC
 				self.groups.add_child(node)
-			if kind == Kind.FILE or kind == Kind.DIR:
+			if kind in [Kind.FILE, Kind.DIR]:
 				node = Node(os.path.join(index_path, refid + '.xml'), None, self.cache, self.parser, self.root,
 							options=self.options)
 				node._visibility = Visibility.PUBLIC
@@ -81,10 +81,7 @@ class Doxygen:
 			self._recursive_sort(child)
 
 	def _is_in_root(self, node: Node, root: Node):
-		for child in root.children:
-			if node.refid == child.refid:
-				return True
-		return False
+		return any(node.refid == child.refid for child in root.children)
 
 	def _remove_from_root(self, refid: str, root: Node):
 		for i, child in enumerate(root.children):
@@ -101,21 +98,22 @@ class Doxygen:
 			self._fix_duplicates(child, root, filter)
 
 	def print(self):
-		if self.debug:
-			print('\n')
-			print("Print root")
-			for node in self.root.children:
-				self.print_node(node, '')
-			print('\n')
+		if not self.debug:
+			return
+		print('\n')
+		print("Print root")
+		for node in self.root.children:
+			self.print_node(node, '')
+		print('\n')
 
-			print("Print groups")
-			for node in self.groups.children:
-				self.print_node(node, '')
-			print('\n')
+		print("Print groups")
+		for node in self.groups.children:
+			self.print_node(node, '')
+		print('\n')
 
-			print("Print files")
-			for node in self.files.children:
-				self.print_node(node, '')
+		print("Print files")
+		for node in self.files.children:
+			self.print_node(node, '')
 
 	def print_node(self, node: Node, indent: str):
 		if self.debug:

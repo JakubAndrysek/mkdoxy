@@ -81,9 +81,7 @@ class GeneratorBase:
 			if self.debug:
 				print('Generating', path)
 			data.update(self.options)
-			output = tmpl.render(data)
-
-			return output
+			return tmpl.render(data)
 		except TemplateError as e:
 			raise Exception(str(e))
 
@@ -199,10 +197,7 @@ class GeneratorBase:
 		classes = self.recursive_find(nodes, Kind.CLASS)
 		classes.extend(self.recursive_find(nodes, Kind.STRUCT))
 		classes.extend(self.recursive_find(nodes, Kind.INTERFACE))
-		dictionary = {}
-
-		for letter in LETTERS:
-			dictionary[letter] = []
+		dictionary = {letter: [] for letter in LETTERS}
 
 		for klass in classes:
 			asd = klass.name_short[0].lower()
@@ -245,11 +240,10 @@ class GeneratorBase:
 		classes.extend(self.recursive_find(nodes, Kind.INTERFACE))
 
 		bases = self._find_base_classes(classes, None)
-		deduplicated = {}
-
-		for base in bases:
-			if not isinstance(base, dict):
-				deduplicated[base.refid] = base
+		deduplicated = {
+		    base.refid: base
+		    for base in bases if not isinstance(base, dict)
+		}
 
 		for base in bases:
 			if isinstance(base, dict):
@@ -308,11 +302,7 @@ class GeneratorBase:
 
 	def index(self, nodes: [Node], kind_filters: Kind, kind_parents: [Kind], title: str):
 		found_nodes = self.recursive_find_with_parent(nodes, kind_filters, kind_parents)
-		dictionary = {}
-
-		# Populate initial dictionary
-		for letter in LETTERS:
-			dictionary[letter] = []
+		dictionary = {letter: [] for letter in LETTERS}
 
 		# Sort items into the dictionary
 		for found in found_nodes:
@@ -332,16 +322,8 @@ class GeneratorBase:
 				if item.name_short not in d:
 					d[item.name_short] = [item.parent]
 
-				# If the key is already in the dictionary,
-				# make sure there are no duplicates.
-				# For example an overloaded constructor or function!
-				# Only allow distinct parents
 				else:
-					found = False
-					for test in d[item.name_short]:
-						if test.refid == item.parent.refid:
-							found = True
-							break
+					found = any(test.refid == item.parent.refid for test in d[item.name_short])
 					if not found:
 						d[item.name_short].append(item.parent)
 
